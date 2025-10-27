@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Üretim Komuta Merkezi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {# --- FONT AWESOME ICON KÜTÜPHANESİ --- #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    {# --- PROFESYONEL FAVICON KODLARI (Sizin hazırlayacağınız dosyalar için) --- #}
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    
+    <style>
+        /* CSS Stilleri (Aynı) */
+        :root {
+            --primary-glow: rgba(167, 139, 250, 0.4); --primary-color: #a78bfa; --primary-dark: #8b5cf6;
+            --background-dark: #0a0e1a; --card-dark: #1f2937; --text-light: #e2e8f0;
+            --text-muted: #94a3b8; --border-dark: #334155; --success-color: #34d399;
+            --shadow-base: 0 4px 12px rgba(0,0,0,0.2); --shadow-hover: 0 10px 20px rgba(0,0,0,0.3);
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--background-dark); color: var(--text-light); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 2.5rem; }
+        .card { 
+            background-color: var(--card-dark); padding: 2rem 2.5rem; border-radius: 18px; 
+            border: 1px solid var(--border-dark); margin-bottom: 2.5rem; box-shadow: var(--shadow-base); 
+            transition: all 0.3s ease-in-out; 
+        }
+        .main-title { 
+            font-size: 2.8rem; font-weight: 800; margin-bottom: 2.5rem; color: white; text-align: center; 
+            background: linear-gradient(to right, #e0c3fc, #818cf8); -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        h2 { font-size: 1.75rem; font-weight: 700; margin: 0 0 2rem 0; color: white; }
+        .header-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.75rem; }
+        .info-card { 
+            background-color: var(--background-dark); border: 1px solid var(--border-dark); 
+            padding: 1.8rem; border-radius: 12px; transition: all 0.2s ease;
+        }
+        .info-card:hover { 
+            border-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 0 15px var(--primary-glow);
+        }
+        .info-card span { font-size: 0.95rem; color: var(--text-muted); display: block; margin-bottom: 0.6rem; }
+        .info-card strong { font-size: 1.75rem; color: var(--text-light); font-weight: 700; line-height: 1.2; }
+        
+        /* Tamamlandı Kartı Görsel İyileştirmesi */
+        .info-card.completed {
+            background-color: rgba(52, 211, 153, 0.1); 
+            border-color: var(--success-color);
+        }
+        .info-card.completed strong, .info-card.completed span {
+             color: var(--success-color); 
+             font-weight: 800;
+        }
+
+        .form-grid { display: grid; grid-template-columns: 2.5fr 1fr 1fr auto; gap: 1.25rem; align-items: flex-end; }
+        .form-group label { display: block; margin-bottom: 0.6rem; font-weight: 500; color: var(--text-muted); font-size: 0.95rem; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 0.9rem 1.2rem; border: 1px solid var(--border-dark); 
+            border-radius: 8px; font-size: 1rem; background-color: #1a2233; color: var(--text-light); 
+            /* Mobil dokunmatik klavye uyumluluğu */
+            -webkit-appearance: none; appearance: none;
+        }
+        
+        /* İkon ve Metin arasındaki boşluk */
+        .submit-button i { margin-right: 0.5rem; }
+        .action-button i { margin-right: 0.2rem; }
+
+        .submit-button { padding: 1rem 2rem; font-size: 1.05rem; background: linear-gradient(45deg, var(--primary-color), var(--primary-dark)); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.3s, opacity 0.3s; }
+        .submit-button:hover:not(:disabled) { background: linear-gradient(45deg, #b89efc, #9d7cf8); }
+        .submit-button:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        /* Eylem Butonları Stili */
+        .action-button { 
+            padding: 0.5rem 0.8rem; font-size: 0.85rem; border: none; border-radius: 6px; cursor: pointer; margin-right: 0.5rem; 
+            font-weight: 600; transition: background-color 0.2s;
+        }
+        .delete-button { background-color: var(--danger-color); color: white; }
+        .delete-button:hover { background-color: #c53030; }
+        .edit-button { background-color: var(--warning-color); color: var(--background-dark); }
+        .edit-button:hover { background-color: #d89000; }
+
+
+        /* Tablo Stilleri */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 1rem; }
+        /* Yeni Eylem sütunu için genişletilmiş başlık */
+        thead th:last-child { width: 120px; text-align: center; } 
+        tbody td:last-child { text-align: center; }
+
+        th, td { padding: 1.2rem 1.5rem; text-align: left; }
+        thead { background-color: #1a2233; }
+        thead th { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); padding: 1rem 1.5rem; }
+        tbody tr { border-bottom: 1px solid var(--border-dark); transition: background-color 0.2s; }
+        tbody tr:hover { background-color: #2a3547; }
+        
+        .progress-container { margin-top: 1.5rem; }
+        .progress-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; font-weight: 500; }
+        .progress-bar { height: 12px; background-color: #334155; border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background-image: linear-gradient(to right, #c084fc, var(--primary-color)); border-radius: 6px; transition: width 0.6s ease-in-out; }
+        
+        /* Sipariş Seçim Alanı Stilleri */
+        .siparis-secim-alani { 
+            margin-bottom: 2.5rem; padding: 1.5rem; background-color: var(--card-dark); 
+            border-radius: 18px; border: 1px solid var(--border-dark); 
+            display: flex; align-items: center; gap: 1.5rem; box-shadow: var(--shadow-base);
+        }
+        .siparis-secim-alani label { font-weight: 600; color: var(--text-light); white-space: nowrap; }
+        .siparis-secim-alani select { flex-grow: 1; padding: 0.7rem 1rem; }
+        .header-action-button { margin-left: auto; padding: 0.5rem 1rem; font-size: 0.9rem; background-color: var(--primary-dark); }
+        .new-siparis-button { background-color: var(--success-color); }
+
+        /* Modal Stilleri */
+        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); }
+        .modal-content { 
+            background-color: var(--card-dark); margin: 10% auto; padding: 2.5rem; border-radius: 12px; 
+            width: 90%; max-width: 600px; box-shadow: var(--shadow-hover); border: 1px solid var(--border-dark); 
+        }
+        .close-button { color: var(--text-muted); float: right; font-size: 28px; font-weight: bold; }
+        .error-message { color: var(--danger-color); font-weight: 600; margin-top: 1rem; }
+        
+        /* Tamamlandı Uyarısı */
+        #tamamlandi-uyarisi {
+            position: fixed; top: 1rem; right: 1rem; 
+            background-color: var(--success-color); color: var(--background-dark); 
+            padding: 1.2rem 2rem; border-radius: 8px; font-weight: 700;
+            box-shadow: var(--shadow-hover); z-index: 20; display: none;
+            max-width: 350px; text-align: center;
+        }
+        
+        /* MOBİL UYUMLULUK DÜZELTMELERİ */
+        @media (max-width: 992px) {
+            .container { padding: 1rem; }
+            .card { padding: 1.5rem; margin-bottom: 1.5rem; }
+            .main-title { font-size: 2rem; margin-bottom: 1.5rem; }
+            .header-grid { grid-template-columns: 1fr; gap: 1rem; }
+            
+            .siparis-secim-alani { flex-direction: column; align-items: stretch; }
+            .siparis-secim-alani select { order: 2; } 
+            .siparis-secim-alani label { order: 1; margin-bottom: 0.5rem; }
+            .header-action-button { order: 3; width: 100%; margin-left: 0; }
+            
+            .form-grid { grid-template-columns: 1fr; } 
+            /* Form inputlarının mobil klavye kullanımı için yükseklik artışı */
+            .form-group input, .form-group select { padding: 1rem 1.2rem; }
+            .submit-button { padding: 1.2rem 2rem; }
+
+            .table-wrapper { overflow-x: auto; } 
+            table thead { display: none; } 
+            table, table tbody, table tr, table td { display: block; width: 100%; }
+            table tr { margin-bottom: 1rem; background-color: #1a2233; border: 1px solid var(--border-dark); border-radius: 10px; }
+            
+            /* Mobil Tablo Görünümü İyileştirmesi */
+            table td { 
+                display: flex; justify-content: space-between; align-items: center; 
+                text-align: right; padding: 0.75rem 1rem; border-bottom: 1px dashed var(--border-dark); 
+                font-size: 0.95rem; 
+            }
+            table tr td:last-child { border-bottom: none; }
+            table td::before { 
+                content: attr(data-label); font-weight: 600; color: var(--text-muted); 
+                text-align: left; margin-right: 1rem; 
+                font-size: 0.85rem; 
+            }
+             /* Eylem butonu mobil görünümü (Sağda buton) */
+            table td[data-label="Eylem"] { 
+                 justify-content: flex-end; 
+            }
+            table td[data-label="Eylem"]::before {
+                 content: "Eylem"; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="tamamlandi-uyarisi"></div>
+    <main class="container">
+        <h1 class="main-title">Üretim Komuta Merkezi</h1>
+
+        {# Sipariş Seçim Alanı #}
+        <div class="siparis-secim-alani">
+            <label for="siparis-secim">Aktif Sipariş:</label>
+            <select id="siparis-secim" class="form-group">
+                <option value="">Sipariş Seçiniz...</option>
+            </select>
+            {# Yeni Sipariş Butonu - İKON EKLENDİ #}
+            <button id="yeni-siparis-butonu" class="submit-button header-action-button new-siparis-button">
+                <i class="fas fa-plus-circle"></i> Yeni Sipariş
+            </button>
+            {# Siparişi Düzenle Butonu - İKON EKLENDİ #}
+            <button id="duzenle-butonu" class="submit-button header-action-button" style="display: none;" disabled>
+                <i class="fas fa-edit"></i> Siparişi Düzenle
+            </button>
+        </div>
+
+        {# Header Kartları - 4 Kolonlu Yeni Düzen #}
+        <section class="card">
+             <div class="header-grid">
+                <div class="info-card" id="card-musteri-urun">
+                    <span>Müşteri / Ürün</span>
+                    <strong id="header-musteri-urun">Sipariş Seçin...</strong>
+                </div>
+                <div class="info-card">
+                    <span>Sipariş Tarihi</span>
+                    <strong id="header-siparis-tarihi">--.--.----</strong>
+                </div>
+                
+                {# PARÇA TAKİBİ KARTI #}
+                <div class="info-card">
+                    <span>Parça/Hedef Takibi</span>
+                    <strong>
+                        <span id="header-uretilen-parca">0</span> / <span id="header-hedef-parca">0</span> Parça
+                    </strong>
+                </div>
+
+                <div class="info-card progress-card" id="ilerleme-card">
+                    <span>Takım İlerlemesi (<span id="header-parca-adeti">1</span> Parça/Takım)</span>
+                    <div class="progress-container">
+                        <div class="progress-info">
+                            <span>Üretilen: <strong id="header-uretilen">0</strong></span>
+                            <span>Hedef: <strong id="header-hedef">0</strong></span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="header-progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# Yeni Üretim Kaydı Formu #}
+        <section class="card" id="kayit-formu-card">
+            <h2>Yeni Üretim Kaydı</h2>
+            <form class="form-grid" id="kayit-formu">
+                <div class="form-group"><label>Açıklama</label><input type="text" name="aciklama" placeholder="Örn: Gündüz Vardiyası" required></div>
+                <div class="form-group"><label>Paket Sayısı</label><input type="text" name="paket_sayisi" placeholder="Örn: 10 çuval"></div>
+                
+                {# type="number" Eklendi, mobil klavye numara açar #}
+                <div class="form-group"><label>Çıkan Adet (Takım)</label><input type="number" name="adet" id="kayit-adet-input" placeholder="Örn: 1250" required min="1"></div>
+                
+                {# KAYDET BUTONU - İKON EKLENDİ #}
+                <div class="form-group">
+                    <button type="submit" class="submit-button" disabled>
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+            <div id="form-mesaj" style="margin-top: 1rem; color: var(--success-color);"></div>
+        </section>
+
+        {# Kayıt Geçmişi Tablosu #}
+        <section class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Kayıt Geçmişi</h2>
+                {# EXCEL BUTONU - İKON EKLENDİ #}
+                <button id="excel-indir-butonu" class="submit-button header-action-button" style="margin-left: 0; background-color: var(--success-color);" disabled>
+                    <i class="fas fa-file-excel"></i> Excel'e Aktar
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    {# EYLEM SÜTUNU EKLENDİ #}
+                    <thead><tr><th>Tarih</th><th>Açıklama</th><th>Paket Sayısı</th><th>Adet (Takım)</th><th>Toplam Üretim (Sipariş İçi)</th><th>Eylem</th></tr></thead>
+                    <tbody id="kayitlar-tablosu">
+                        <tr><td colspan="6" style="text-align: center;">Lütfen bir sipariş seçin.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    {# YENİ KAYIT DÜZENLEME MODALI #}
+    <div id="kayit-duzenle-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="kayit-duzenle-close">&times;</span>
+            <h2>Kayıt Düzeltme</h2>
+            <form id="kayit-guncelleme-formu">
+                {# Gizli Alan: Hangi kaydı güncellediğimizi tutar #}
+                <input type="hidden" id="modal-kayit-id" name="kayit_id"> 
+
+                <div class="form-group"><label>Açıklama</label><input type="text" id="modal-kayit-aciklama" name="aciklama" required></div>
+                <div class="form-group"><label>Paket Sayısı</label><input type="text" id="modal-kayit-paket-sayisi" name="paket_sayisi"></div>
+                <div class="form-group"><label>Adet (Takım)</label><input type="number" id="modal-kayit-adet" name="adet" required min="1"></div>
+
+                {# DÜZELT BUTONU - İKON EKLENDİ #}
+                <button type="submit" class="submit-button" style="width: 100%; margin-top: 1.5rem;">
+                    <i class="fas fa-check"></i> Kaydı Düzelt
+                </button>
+            </form>
+            <div id="kayit-modal-mesaj" class="error-message" style="color: var(--success-color);"></div>
+        </div>
+    </div>
+    
+    {# SİPARİŞ DÜZENLEME MODALI (Mevcut) #}
+    <div id="siparis-duzenle-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Sipariş Bilgilerini Güncelle</h2>
+            <form id="siparis-guncelleme-formu">
+                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="modal-musteri-adi" name="musteri_adi" required></div>
+                <div class="form-group"><label>Ürün Adı</label><input type="text" id="modal-urun-adi" name="urun_adi" required></div>
+                <div class="form-group"><label>Sipariş Tarihi</label><input type="date" id="modal-siparis-tarihi" name="siparis_tarihi" required></div>
+                <div class="form-group"><label>Hedef Takım Adedi</label><input type="number" id="modal-hedef-adet" name="hedef_adet" required min="1"></div>
+                
+                <div class="form-group"><label>Takım Başına Parça Adedi</label><input type="number" id="modal-parca-adeti" name="parca_adeti_per_takim" required min="1"></div>
+                
+                 <div class="form-group"><label>Durum</label>
+                    <select id="modal-durum" name="durum" required>
+                         <option value="Aktif">Aktif</option>
+                         <option value="Tamamlandı">Tamamlandı</option>
+                         <option value="Beklemede">Beklemede</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-button" style="width: 100%; margin-top: 1.5rem;">
+                    <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                </button>
+            </form>
+            <div id="modal-mesaj" class="error-message" style="color: var(--success-color);"></div>
+        </div>
+    </div>
+    
+    {# YENİ SİPARİŞ OLUŞTURMA MODALI (Mevcut) #}
+    <div id="yeni-siparis-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="yeni-siparis-close">&times;</span>
+            <h2>Yeni Sipariş Oluştur</h2>
+            <form id="yeni-siparis-formu">
+                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="yeni-modal-musteri-adi" name="musteri_adi" required></div>
+                <div class="form-group"><label>Ürün/Takım Adı</label><input type="text" id="yeni-modal-urun-adi" name="urun_adi" required></div>
+                <div class="form-group"><label>Hedef Takım Adedi</label><input type="number" id="yeni-modal-hedef-adet" name="hedef_adet" required min="1"></div>
+                
+                <div class="form-group"><label>Takım Başına Parça Adedi</label><input type="number" id="yeni-modal-parca-adeti" name="parca_adeti_per_takim" required min="1" value="1"></div>
+
+                <div class="form-group"><label>Sipariş Tarihi</label><input type="date" id="yeni-modal-siparis-tarihi" name="siparis_tarihi" required></div>
+
+                <button type="submit" class="submit-button" style="width: 100%; margin-top: 1.5rem;">
+                    <i class="fas fa-plus"></i> Siparişi Oluştur
+                </button>
+            </form>
+            <div id="yeni-modal-mesaj" class="error-message" style="color: var(--success-color);"></div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DOM Elementlerini Seç ---
+        const siparisSecimSelect = document.getElementById('siparis-secim');
+        const headerMusteriUrun = document.getElementById('header-musteri-urun');
+        const headerSiparisTarihi = document.getElementById('header-siparis-tarihi');
+        const headerUretilen = document.getElementById('header-uretilen');
+        const headerHedef = document.getElementById('header-hedef');
+        const headerUretilenParca = document.getElementById('header-uretilen-parca');
+        const headerHedefParca = document.getElementById('header-hedef-parca');
+        const headerParcaAdeti = document.getElementById('header-parca-adeti');
+        const headerProgressFill = document.getElementById('header-progress-fill');
+        const kayitlarTablosu = document.getElementById('kayitlar-tablosu');
+        const kayitFormu = document.getElementById('kayit-formu');
+        const kayitAdetInput = document.getElementById('kayit-adet-input'); 
+        const kayitFormSubmitButton = kayitFormu.querySelector('button[type="submit"]');
+        const formMesaj = document.getElementById('form-mesaj');
+        const duzenleButonu = document.getElementById('duzenle-butonu'); 
+        const yeniSiparisButonu = document.getElementById('yeni-siparis-butonu');
+        const ilerlemeCard = document.getElementById('ilerleme-card');
+        const kayitFormuCard = document.getElementById('kayit-formu-card'); 
+        const excelIndirButonu = document.getElementById('excel-indir-butonu'); 
+
+        // Modal Elemanları
+        const siparisDuzenleModal = document.getElementById('siparis-duzenle-modal');
+        const kayitDuzenleModal = document.getElementById('kayit-duzenle-modal'); 
+        const kayitDuzenleClose = document.getElementById('kayit-duzenle-close'); 
+        const kayitGuncellemeFormu = document.getElementById('kayit-guncelleme-formu'); 
+        const kayitModalMesaj = document.getElementById('kayit-modal-mesaj'); 
+        
+        // Kayıt Modal Inputları
+        const modalKayitId = document.getElementById('modal-kayit-id');
+        const modalKayitAciklama = document.getElementById('modal-kayit-aciklama');
+        const modalKayitPaketSayisi = document.getElementById('modal-kayit-paket-sayisi');
+        const modalKayitAdet = document.getElementById('modal-kayit-adet');
+
+
+        const modalClose = siparisDuzenleModal.querySelector('.close-button');
+        const guncellemeFormu = document.getElementById('siparis-guncelleme-formu');
+        const modalMesaj = document.getElementById('modal-mesaj');
+        const yeniSiparisModal = document.getElementById('yeni-siparis-modal');
+        const yeniSiparisClose = document.getElementById('yeni-siparis-close');
+        const yeniSiparisFormu = document.getElementById('yeni-siparis-formu');
+        const yeniModalMesaj = document.getElementById('yeni-modal-mesaj');
+
+        // Sipariş Modal Inputları (Zaten tanımlıydı)
+        const modalMusteriAdi = document.getElementById('modal-musteri-adi');
+        const modalUrunAdi = document.getElementById('modal-urun-adi');
+        const modalSiparisTarihi = document.getElementById('modal-siparis-tarihi');
+        const modalHedefAdet = document.getElementById('modal-hedef-adet');
+        const modalDurum = document.getElementById('modal-durum');
+        const modalParcaAdeti = document.getElementById('modal-parca-adeti'); 
+        const yeniModalParcaAdeti = document.getElementById('yeni-modal-parca-adeti'); 
+
+        let seciliSiparisId = null; 
+
+        // --- Yardımcı Fonksiyonlar ---
+        function formatDateToInput(dateStr) {
+             const parts = dateStr.split('.');
+             if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+             return dateStr;
+        }
+
+        // --- API Fonksiyonları ---
+
+        // Seçilen siparişin detayını (header) yükler
+        async function fetchSiparisDetay(siparisId) {
+            if (!siparisId) { 
+                // Arayüzü sıfırla
+                headerMusteriUrun.textContent = 'Sipariş Seçin...';
+                headerSiparisTarihi.textContent = '--.--.----';
+                headerUretilen.textContent = '0';
+                headerHedef.textContent = '0';
+                headerUretilenParca.textContent = '0'; 
+                headerHedefParca.textContent = '0';    
+                headerParcaAdeti.textContent = '1';
+                headerProgressFill.style.width = '0%';
+                duzenleButonu.style.display = 'none'; 
+                
+                // Formu Sıfırla
+                kayitFormSubmitButton.disabled = true;
+                kayitFormSubmitButton.innerHTML = `<i class="fas fa-save"></i> Önce Sipariş Seçin`;
+                kayitFormuCard.style.opacity = 1; 
+                kayitFormuCard.style.pointerEvents = 'auto'; 
+                
+                ilerlemeCard.classList.remove('completed'); 
+                excelIndirButonu.disabled = true; 
+                return;
+            }
+            try {
+                const response = await fetch(`/api/siparisler/${siparisId}/detay`);
+                if (!response.ok) throw new Error(`Sipariş detayları alınamadı. Statü: ${response.status}`);
+                const data = await response.json();
+
+                // Header güncelleme
+                headerMusteriUrun.textContent = `${data.musteri_adi} / ${data.urun_adi}`;
+                headerSiparisTarihi.textContent = data.siparis_tarihi;
+                
+                // toLocaleString() ile binlik ayraç kullanarak sayıları formatla (Örn: 1.000.000)
+                headerUretilen.textContent = data.uretilen.toLocaleString('tr-TR'); 
+                headerHedef.textContent = data.hedef_adet.toLocaleString('tr-TR'); 
+                
+                // PARÇA ALANLARI
+                headerUretilenParca.textContent = data.toplam_uretilen_parca.toLocaleString('tr-TR');
+                headerHedefParca.textContent = data.toplam_parca_hedefi.toLocaleString('tr-TR'); 
+                headerParcaAdeti.textContent = data.parca_adeti_per_takim;
+                // ---
+
+                headerProgressFill.style.width = `${data.ilerleme_yuzdesi}%`;
+
+                // Modal'ı doldur (Güncelleme için gerekli)
+                modalMusteriAdi.value = data.musteri_adi;
+                modalUrunAdi.value = data.urun_adi;
+                modalSiparisTarihi.value = formatDateToInput(data.siparis_tarihi); 
+                modalHedefAdet.value = data.hedef_adet;
+                modalDurum.value = data.durum;
+                modalParcaAdeti.value = data.parca_adeti_per_takim; 
+
+                duzenleButonu.disabled = false; 
+                duzenleButonu.style.display = 'inline-block'; 
+                
+                // --- KRİTİK HATA ÖNLEME MANTIĞI: Sipariş Tamamlandıysa ---
+                if (data.durum === 'Tamamlandı') {
+                    kayitFormSubmitButton.disabled = true;
+                    kayitFormSubmitButton.innerHTML = `<i class="fas fa-check-circle"></i> TAMAMLANDI`;
+                    kayitFormuCard.style.opacity = 0.6; 
+                    kayitFormuCard.style.pointerEvents = 'none'; 
+                    ilerlemeCard.classList.add('completed');
+                } else {
+                    kayitFormSubmitButton.disabled = false;
+                    kayitFormSubmitButton.innerHTML = `<i class="fas fa-save"></i> Kaydet`;
+                    kayitFormuCard.style.opacity = 1; 
+                    kayitFormuCard.style.pointerEvents = 'auto'; 
+                    ilerlemeCard.classList.remove('completed');
+                }
+                
+                // Kayıtlar varsa excel indirme butonunu aktif et
+                excelIndirButonu.disabled = data.uretilen === 0;
+
+            } catch (error) {
+                console.error('Sipariş Detayı Yükleme Hatası:', error);
+                headerMusteriUrun.textContent = 'Hata';
+                headerSiparisTarihi.textContent = 'Hata';
+                duzenleButonu.style.display = 'none';
+                excelIndirButonu.disabled = true;
+            }
+        }
+
+        // Sipariş listesini API'den çeker ve dropdown'ı doldurur
+        async function fetchVeDoldurSiparisler(selectId = null) {
+            try {
+                const response = await fetch('/api/siparisler');
+                if (!response.ok) throw new Error('Sipariş listesi alınamadı.');
+                const siparisler = await response.json();
+
+                siparisSecimSelect.innerHTML = '<option value="">Sipariş Seçiniz...</option>';
+
+                siparisler.forEach(siparis => {
+                    const option = document.createElement('option');
+                    option.value = siparis.id;
+                    const parcaText = siparis.parca_adeti_per_takim > 1 ? ` (${siparis.parca_adeti_per_takim} Parça)` : '';
+                    option.textContent = `${siparis.musteri_adi} - ${siparis.urun_adi} (Hedef: ${siparis.hedef_adet.toLocaleString('tr-TR')}, Durum: ${siparis.durum})${parcaText}`;
+                    
+                    // Tamamlananları hafifçe renklendir
+                    if(siparis.durum === 'Tamamlandı') {
+                         option.style.backgroundColor = '#1a2233';
+                         option.style.color = 'var(--success-color)';
+                    }
+                    
+                    siparisSecimSelect.appendChild(option);
+                });
+                
+                if(selectId){
+                    siparisSecimSelect.value = selectId;
+                    seciliSiparisId = selectId;
+                    fetchSiparisDetay(seciliSiparisId);
+                    fetchSiparisKayitlari(seciliSiparisId);
+                }
+
+            } catch (error) {
+                console.error('Sipariş Listesi Yükleme Hatası:', error);
+            }
+        }
+
+        // Seçilen siparişin kayıtlarını yükler
+        async function fetchSiparisKayitlari(siparisId) {
+            if (!siparisId) {
+                // colspan 6 olarak ayarlandı (Eylem sütunu dahil)
+                kayitlarTablosu.innerHTML = '<tr><td colspan="6" style="text-align: center;">Lütfen bir sipariş seçin.</td></tr>';
+                return;
+            }
+            try {
+                kayitlarTablosu.innerHTML = '<tr><td colspan="6" style="text-align: center;">Kayıtlar yükleniyor...</td></tr>';
+                const response = await fetch(`/api/kayitlar/${siparisId}`);
+                if (!response.ok) throw new Error(`Kayıtlar alınamadı. Statü: ${response.status}`);
+                const kayitlar = await response.json();
+
+                kayitlarTablosu.innerHTML = ''; 
+
+                if (kayitlar.length === 0) {
+                     kayitlarTablosu.innerHTML = '<tr><td colspan="6" style="text-align: center;">Bu sipariş için henüz kayıt bulunmuyor.</td></tr>';
+                     return;
+                }
+
+                kayitlar.forEach(kayit => {
+                    const row = kayitlarTablosu.insertRow();
+                    
+                    let aciklamaText = kayit.aciklama;
+                    let paketText = kayit.paket_sayisi ? kayit.paket_sayisi : '';
+                    
+                    row.innerHTML = `
+                        <td data-label="Tarih">${kayit.tarih}</td>
+                        <td data-label="Açıklama">${aciklamaText}</td>
+                        <td data-label="Paket Sayısı">${paketText}</td> 
+                        <td data-label="Adet (Takım)">${kayit.adet.toLocaleString('tr-TR')}</td>
+                        <td data-label="Toplam Üretim">${kayit.toplam_uretim.toLocaleString('tr-TR')}</td>
+                        <td data-label="Eylem">
+                             <button class="action-button delete-button" onclick="deleteKayit(${kayit.id})"><i class="fas fa-trash"></i> Sil</button>
+                             <button class="action-button edit-button" onclick="openEditKayitModal(${kayit.id})"><i class="fas fa-edit"></i> Düzenle</button>
+                        </td>
+                    `;
+                });
+
+            } catch (error) {
+                console.error('Kayıt Yükleme Hatası:', error);
+                kayitlarTablosu.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger-color);">Kayıtlar yüklenirken hata oluştu.</td></tr>';
+            }
+        }
+        
+        // --- YENİ KAYIT SİLME FONKSİYONU ---
+        async function deleteKayit(kayitId) {
+            if (!confirm("Bu üretim kaydını silmek istediğinizden emin misiniz? Toplam üretim etkilenecektir.")) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/kayitlar/${kayitId}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    let errorDetail = 'Silme başarısız.';
+                    try { 
+                         const errorData = await response.json(); 
+                         errorDetail = errorData.detail || errorDetail; 
+                    }
+                    catch (jsonError) { errorDetail = `Sunucu hatası: ${response.status} ${response.statusText}`; }
+                    throw new Error(errorDetail);
+                }
+
+                // Silme başarılı, tabloyu ve detayları yenile
+                await fetchSiparisKayitlari(seciliSiparisId); 
+                await fetchSiparisDetay(seciliSiparisId); 
+                
+                formMesaj.textContent = 'Kayıt başarıyla silindi ve toplam üretim güncellendi.';
+                formMesaj.style.color = 'var(--warning-color)';
+                setTimeout(() => { formMesaj.textContent = ''; }, 4000);
+
+            } catch (error) {
+                console.error('Silme Hatası:', error);
+                formMesaj.textContent = `Silme Hatası: ${error.message}`;
+                formMesaj.style.color = 'var(--danger-color)';
+            }
+        }
+        window.deleteKayit = deleteKayit; 
+        // --- KAYIT SİLME FONKSİYONU SONU ---
+
+        // --- YENİ KAYIT DÜZENLEME MODALI AÇMA FONKSİYONU ---
+        async function openEditKayitModal(kayitId) {
+            kayitModalMesaj.textContent = '';
+            try {
+                const response = await fetch(`/api/kayitlar/detay/${kayitId}`);
+                if (!response.ok) throw new Error('Kayıt detayları alınamadı.');
+                const data = await response.json();
+
+                modalKayitId.value = kayitId;
+                modalKayitAciklama.value = data.aciklama;
+                modalKayitPaketSayisi.value = data.paket_sayisi || '';
+                modalKayitAdet.value = data.adet;
+                
+                kayitDuzenleModal.style.display = 'block';
+
+            } catch (error) {
+                console.error('Kayıt Detay Yükleme Hatası:', error);
+                formMesaj.textContent = `Hata: Kayıt detayı yüklenemedi.`;
+                formMesaj.style.color = 'var(--danger-color)';
+            }
+        }
+        window.openEditKayitModal = openEditKayitModal; 
+        // --- KAYIT DÜZENLEME MODALI AÇMA SONU ---
+
+        // --- KAYIT GÜNCELLEME FORMU GÖNDERİMİ ---
+        kayitGuncellemeFormu.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const submitButton = kayitGuncellemeFormu.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
+            const kayitId = modalKayitId.value;
+            const adetValue = parseInt(modalKayitAdet.value);
+
+             // SIFIR HATA KONTROLÜ
+            if (adetValue < 1 || isNaN(adetValue)) {
+                 kayitModalMesaj.textContent = 'Hata: Adet 1 veya daha büyük bir sayı olmalıdır.';
+                 kayitModalMesaj.style.color = 'var(--danger-color)';
+                 submitButton.disabled = false;
+                 return;
+            }
+
+            const dataToSend = {
+                aciklama: modalKayitAciklama.value,
+                paket_sayisi: modalKayitPaketSayisi.value || null,
+                adet: adetValue
+            };
+            
+            kayitModalMesaj.textContent = 'Güncelleniyor...';
+            kayitModalMesaj.style.color = 'var(--text-muted)';
+
+
+            try {
+                const response = await fetch(`/api/kayitlar/${kayitId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                    let errorDetail = 'Güncelleme başarısız.';
+                    try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; }
+                    catch (jsonError) { errorDetail = `Sunucu hatası: ${response.status} ${response.statusText}`; }
+                    throw new Error(errorDetail);
+                }
+
+                kayitModalMesaj.textContent = 'Kayıt başarıyla düzeltildi!';
+                kayitModalMesaj.style.color = 'var(--success-color)';
+
+                await fetchSiparisKayitlari(seciliSiparisId); 
+                await fetchSiparisDetay(seciliSiparisId); 
+
+                setTimeout(() => { kayitDuzenleModal.style.display = 'none'; }, 1000);
+
+            } catch (error) {
+                console.error('Kayıt Güncelleme Hatası:', error);
+                kayitModalMesaj.textContent = `Hata: ${error.message}`;
+                kayitModalMesaj.style.color = 'var(--danger-color)';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+        // --- KAYIT GÜNCELLEME FORMU GÖNDERİMİ SONU ---
+
+        // 1. Sipariş Seçimi değiştiğinde
+        siparisSecimSelect.addEventListener('change', (event) => {
+            seciliSiparisId = event.target.value ? parseInt(event.target.value) : null;
+            if (seciliSiparisId) {
+                fetchSiparisDetay(seciliSiparisId);
+                fetchSiparisKayitlari(seciliSiparisId);
+            } else {
+                fetchSiparisDetay(null);
+                fetchSiparisKayitlari(null);
+            }
+        });
+
+        // 2. Yeni Kayıt Formu Gönderimi (Sıfır Hata Kontrolü dahil)
+        kayitFormu.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!seciliSiparisId) { formMesaj.textContent = 'Lütfen önce bir sipariş seçin.'; formMesaj.style.color = 'var(--danger-color)'; return; }
+            if (kayitFormSubmitButton.disabled) return; // Tamamlandı uyarısı
+
+            formMesaj.textContent = 'Kaydediliyor...';
+            formMesaj.style.color = 'var(--text-muted)';
+            kayitFormSubmitButton.disabled = true;
+
+            const adetInput = document.getElementById('kayit-adet-input');
+            const adetValue = parseInt(adetInput.value); 
+            
+            // SIFIR HATA KONTROLÜ
+            if (adetValue < 1 || isNaN(adetValue)) {
+                 formMesaj.textContent = 'Hata: Çıkan Adet (Takım) 1 veya daha büyük bir sayı olmalıdır.';
+                 formMesaj.style.color = 'var(--danger-color)';
+                 kayitFormSubmitButton.disabled = false;
+                 return;
+            }
+            
+            // Form verilerini Pydantic modeline uygun olarak manuel oluştur
+            const formData = new FormData(kayitFormu);
+            const dataToSend = {
+                aciklama: formData.get('aciklama'),
+                paket_sayisi: formData.get('paket_sayisi') || null,
+                adet: adetValue 
+            };
+
+
+            try {
+                const response = await fetch(`/api/kayitlar/${seciliSiparisId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                    let errorDetail = 'Kayıt eklenemedi.';
+                    try { 
+                         const errorData = await response.json(); 
+                         errorDetail = errorData.detail || errorDetail; 
+                    }
+                    catch (jsonError) { errorDetail = `Sunucu hatası: ${response.status} ${response.statusText}`; }
+                    throw new Error(errorDetail);
+                }
+
+                kayitFormu.reset();
+                formMesaj.textContent = 'Kayıt başarıyla eklendi!';
+                formMesaj.style.color = 'var(--success-color)';
+                fetchSiparisKayitlari(seciliSiparisId); 
+                fetchSiparisDetay(seciliSiparisId); 
+
+                setTimeout(() => { formMesaj.textContent = ''; }, 3000);
+
+            } catch (error) {
+                console.error('Form Gönderme Hatası:', error);
+                formMesaj.textContent = `Hata: ${error.message}`;
+                formMesaj.style.color = 'var(--danger-color)';
+            } finally {
+                 // Form durumu fetchSiparisDetay içinde ayarlanır
+            }
+        });
+
+        // 3. Siparişi Düzenle Butonu (Modal'ı açar)
+        duzenleButonu.addEventListener('click', () => {
+            if (seciliSiparisId) {
+                modalMesaj.textContent = '';
+                siparisDuzenleModal.style.display = 'block'; 
+            }
+        });
+        
+        // 4. Yeni Sipariş Butonu (Modal'ı açar)
+        yeniSiparisButonu.addEventListener('click', () => {
+            yeniSiparisFormu.reset(); 
+            document.getElementById('yeni-modal-siparis-tarihi').value = new Date().toISOString().split('T')[0];
+            yeniModalParcaAdeti.value = 1; 
+            yeniModalMesaj.textContent = '';
+            yeniSiparisModal.style.display = 'block';
+        });
+
+        // 5. Modal Kapatma
+        kayitDuzenleClose.addEventListener('click', () => { kayitDuzenleModal.style.display = 'none'; });
+        modalClose.addEventListener('click', () => { siparisDuzenleModal.style.display = 'none'; });
+        yeniSiparisClose.addEventListener('click', () => { yeniSiparisModal.style.display = 'none'; });
+        window.addEventListener('click', (event) => {
+            if (event.target == siparisDuzenleModal) { siparisDuzenleModal.style.display = 'none'; }
+            if (event.target == yeniSiparisModal) { yeniSiparisModal.style.display = 'none'; }
+            if (event.target == kayitDuzenleModal) { kayitDuzenleModal.style.display = 'none'; }
+        });
+
+
+        // 6. Sipariş Güncelleme Formu Gönderimi (Mevcut)
+        guncellemeFormu.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            modalMesaj.textContent = 'Kaydediliyor...';
+            modalMesaj.style.color = 'var(--text-muted)';
+            const submitButton = guncellemeFormu.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
+            const hedefAdetValue = parseInt(modalHedefAdet.value);
+            const parcaAdetiValue = parseInt(modalParcaAdeti.value);
+
+            if (hedefAdetValue < 1 || isNaN(hedefAdetValue) || parcaAdetiValue < 1 || isNaN(parcaAdetiValue)) {
+                 modalMesaj.textContent = 'Hata: Hedef Adet ve Parça Adedi 1\'den büyük olmalıdır.';
+                 modalMesaj.style.color = 'var(--danger-color)';
+                 submitButton.disabled = false;
+                 return;
+            }
+
+            const dataToSend = {
+                musteri_adi: modalMusteriAdi.value,
+                urun_adi: modalUrunAdi.value,
+                siparis_tarihi: modalSiparisTarihi.value, 
+                hedef_adet: hedefAdetValue,
+                durum: modalDurum.value,
+                parca_adeti_per_takim: parcaAdetiValue 
+            };
+
+            try {
+                const response = await fetch(`/api/siparisler/${seciliSiparisId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                     let errorDetail = 'Güncelleme başarısız.';
+                     try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; }
+                     catch (jsonError) { errorDetail = `Sunucu hatası: ${response.status} ${response.statusText}`; }
+                     throw new Error(errorDetail);
+                }
+
+                modalMesaj.textContent = 'Başarıyla güncellendi!';
+                modalMesaj.style.color = 'var(--success-color)';
+
+                fetchVeDoldurSiparisler(seciliSiparisId); 
+
+                setTimeout(() => { 
+                    siparisDuzenleModal.style.display = 'none'; 
+                    fetchSiparisDetay(seciliSiparisId); 
+                }, 1500);
+
+            } catch (error) {
+                console.error('Modal Güncelleme Hatası:', error);
+                modalMesaj.textContent = `Hata: ${error.message}`;
+                modalMesaj.style.color = 'var(--danger-color)';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+        
+        // 7. Yeni Sipariş Oluşturma Formu Gönderimi (Mevcut)
+        yeniSiparisFormu.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            yeniModalMesaj.textContent = 'Oluşturuluyor...';
+            yeniModalMesaj.style.color = 'var(--text-muted)';
+            const submitButton = yeniSiparisFormu.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+
+            const formData = new FormData(yeniSiparisFormu);
+            const hedefAdetValue = parseInt(document.getElementById('yeni-modal-hedef-adet').value);
+            const parcaAdetiValue = parseInt(document.getElementById('yeni-modal-parca-adeti').value);
+
+
+            if (hedefAdetValue < 1 || isNaN(hedefAdetValue) || parcaAdetiValue < 1 || isNaN(parcaAdetiValue)) {
+                 yeniModalMesaj.textContent = 'Hata: Hedef Adet ve Parça Adedi 1\'den büyük olmalıdır.';
+                 yeniModalMesaj.style.color = 'var(--danger-color)';
+                 submitButton.disabled = false;
+                 return;
+            }
+
+            const dataToSend = {
+                musteri_adi: formData.get('musteri_adi'),
+                urun_adi: formData.get('urun_adi'),
+                hedef_adet: hedefAdetValue,
+                siparis_tarihi: formData.get('siparis_tarihi'), 
+                durum: 'Aktif',
+                parca_adeti_per_takim: parcaAdetiValue
+            };
+
+            try {
+                const response = await fetch('/api/siparisler', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                    let errorDetail = 'Sipariş oluşturulamadı.';
+                    try { const errorData = await response.json(); errorDetail = errorData.detail || errorDetail; }
+                    catch (jsonError) { errorDetail = `Sunucu hatası: ${response.status} ${response.statusText}`; }
+                    throw new Error(errorDetail);
+                }
+
+                const newSiparisData = await response.json(); 
+
+                yeniSiparisFormu.reset(); 
+                yeniModalMesaj.textContent = 'Sipariş başarıyla oluşturuldu!';
+                yeniModalMesaj.style.color = 'var(--success-color)';
+                
+                fetchVeDoldurSiparisler(newSiparisData.id); 
+
+                setTimeout(() => { yeniSiparisModal.style.display = 'none'; }, 1500);
+
+            } catch (error) {
+                console.error('Yeni Sipariş Hatası:', error);
+                yeniModalMesaj.textContent = `Hata: ${error.message}`;
+                yeniModalMesaj.style.color = 'var(--danger-color)';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+        
+        // 8. Excel İndir Butonu (Mevcut yer tutucu)
+        excelIndirButonu.addEventListener('click', () => {
+             if (seciliSiparisId) {
+                 formMesaj.textContent = 'Excel İndirme özelliği şu an için atlanmıştır.';
+                 formMesaj.style.color = 'var(--warning-color)';
+                 setTimeout(() => { formMesaj.textContent = ''; }, 4000);
+             }
+        });
+
+
+        // --- Sayfa Yüklenince (Otomatik İlk Siparişi Seçme Mantığı) ---
+        async function initializePage() {
+            // 1. Sipariş listesini doldur
+            await fetchVeDoldurSiparisler(); 
+
+            // 2. Eğer listede sipariş varsa, ilkini otomatik seç ve detayları yükle
+            const firstOption = siparisSecimSelect.querySelector('option:not([value=""])');
+            if (firstOption) {
+                const firstSiparisId = firstOption.value;
+                siparisSecimSelect.value = firstSiparisId;
+                seciliSiparisId = parseInt(firstSiparisId);
+                
+                // Artık ID var, detayları yükle
+                await fetchSiparisDetay(seciliSiparisId);
+                await fetchSiparisKayitlari(seciliSiparisId);
+            } else {
+                 fetchSiparisDetay(null); 
+                 fetchSiparisKayitlari(null);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+    </script>
+</body>
+</html>
